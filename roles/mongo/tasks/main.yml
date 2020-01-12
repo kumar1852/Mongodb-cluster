@@ -1,0 +1,4 @@
+---
+
+- include: mongod.yml
+- include: replica.yml

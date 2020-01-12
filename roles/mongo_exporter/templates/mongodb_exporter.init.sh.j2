@@ -1,0 +1,125 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# processname:       mongodb_exporter
+# Short-Description: Prometheus mongodb_exporter.
+# Description:       The mongodb_exporter receives alerts from one or more Prometheus servers.
+#                    It manages those alerts, including silencing, inhibition, aggregation
+#                    and sending out notifications via methods such as email, PagerDuty and HipChat.
+#
+# chkconfig: 2345 80 80
+# pidfile: {{ mongodb_exporter_pid_path }}/mongodb_exporter.pid
+#
+#
+### END INIT INFO
+
+#set -e
+
+# Source function library.
+. /etc/init.d/functions
+
+
+NAME=mongodb_exporter
+DESC="Prometheus mongodb_exporter"
+DAEMON={{ mongodb_exporter_install_path }}/mongodb_exporter
+USER={{ prometheus_user }}
+PID="{{ mongodb_exporter_pid_path }}/$NAME.pid"
+LOG="{{ mongodb_exporter_log_path }}/$NAME.log"
+
+DAEMON_OPTS="-web.listen-address 0.0.0.0:9104 -collect.database -collect.topmetrics"
+
+RETVAL=0
+
+# Check if DAEMON binary exist
+[ -f $DAEMON ] || exit 0
+
+[ -f "/etc/default/$NAME" ]  &&  . /etc/default/$NAME
+
+service_not_configured() {
+  if [ "$1" != "stop" ]; then
+    printf "\tPlease configure $NAME and then edit /etc/default/$NAME\n"
+    printf "\tand set the \"START\" variable to \"yes\" in order to allow\n"
+    printf "\t$NAME to start.\n"
+  fi
+  exit 0
+}
+
+service_checks() {
+  # Check if START variable is set to "yes", if not we exit.
+  if [ "$START" != "yes" ]; then
+    service_not_configured $1
+  fi
+
+  # Prepare directories
+  mkdir -p "{{ mongodb_exporter_pid_path }}" "{{ mongodb_exporter_log_path }}"
+  chown -R $USER "{{ mongodb_exporter_pid_path }}" "{{ mongodb_exporter_log_path }}"
+
+  # Check if PID exists
+  if [ -f "$PID" ]; then
+    PID_NUMBER=`cat $PID`
+    if [ -z "`ps axf | grep ${PID_NUMBER} | grep -v grep`" ]; then
+      echo "Service was aborted abnormally; clean the PID file and continue..."
+      rm -f "$PID"
+    else
+      echo "Service already started; skip..."
+      exit 1
+    fi
+  fi
+}
+
+start() {
+  service_checks $1
+  sudo -u $USER nohup $DAEMON $DAEMON_OPTS  > $LOG 2>&1  &
+  RETVAL=$?
+  echo $! > $PID
+}
+
+stop() {
+  killproc -p $PID
+  RETVAL=$?
+  [[ $retval -eq 0 ]] && rm -f $PID
+}
+
+reload() {
+  kill -HUP `cat $PID`
+  RETVAL=$?
+}
+
+#chdir $CHDIR
+
+case "$1" in
+  start)
+    echo -n $"Starting $DESC -" "$NAME" $'\n'
+    start
+    ;;
+
+  stop)
+    echo -n $"Stopping $DESC -" "$NAME" $'\n'
+    stop
+    ;;
+
+  reload)
+    echo -n $"Reloading $DESC configuration -" "$NAME" $'\n'
+    reload
+    ;;
+
+  restart|force-reload)
+    echo -n $"Restarting $DESC -" "$NAME" $'\n'
+    stop
+    start
+    ;;
+
+  syntax)
+    $DAEMON --help
+    ;;
+
+  status)
+    status -p $PID $DAEMON
+    ;;
+
+  *)
+    echo -n $"Usage: /etc/init.d/$NAME {start|stop|reload|restart|force-reload|syntax|status}" $'\n'
+    ;;
+esac
+
+exit $RETVAL

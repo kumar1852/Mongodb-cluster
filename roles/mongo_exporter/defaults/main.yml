@@ -1,0 +1,8 @@
+---
+
+prometheus_user:   prometheus
+prometheus_group:  prometheus
+
+mongodb_exporter_install_path:       /opt/mongodb_exporter
+mongodb_exporter_log_path:           /var/log/mongodb_exporter
+mongodb_exporter_pid_path:           /var/run/mongodb_exporter

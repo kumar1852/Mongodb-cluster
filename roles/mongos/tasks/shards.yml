@@ -1,0 +1,13 @@
+---
+
+- name: copy shards js file
+  template:
+    src: add-shards.js.j2
+    dest: /tmp/add-shards.js
+
+- block:
+  - name: add shards
+    command: "mongo --port {{ router_port }} /tmp/add-shards.js"
+
+  delegate_to: "{{ groups.routers[0] }}"
+  run_once: true

@@ -1,0 +1,13 @@
+---
+
+- name: copy replica js file
+  template:
+    src: initialize-replica.js.j2
+    dest: /tmp/initialize-replica.js
+
+- block:
+  - name: initilize replica set
+    command: "mongo --port {{ config_port }} /tmp/initialize-replica.js"
+
+  delegate_to: "{{ groups.replicas[0] }}"
+  run_once: true

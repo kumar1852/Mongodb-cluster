@@ -1,0 +1,6 @@
+---
+
+- name: Install RPMs
+  yum:
+    name: Percona-Server-MongoDB-34
+    state: present

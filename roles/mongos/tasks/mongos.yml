@@ -1,0 +1,28 @@
+---
+
+- name: set permissions
+  file:
+    path: "{{ mongo_root_dir }}/mongos"
+    owner: mongod
+    group: mongod
+    state: directory
+    recurse: yes
+
+- name: mongos init
+  template:
+    src: mongos-init.j2
+    dest: /etc/init.d/mongos
+    mode: 0655
+
+- name: mongos.conf
+  template:
+    src: mongos.conf.j2
+    dest: /etc/mongos.conf
+  notify: restart mongos
+
+- name: start Mongo
+  command: /etc/init.d/mongos start
+#  service:
+#    name: mongos
+#    state: started
+#    enabled: yes

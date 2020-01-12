@@ -1,0 +1,25 @@
+---
+
+- name: set permissions
+  file:
+    path: "{{ mongo_root_dir }}/mongod"
+    owner: mongod
+    group: mongod
+    state: directory
+    recurse: yes
+
+- name: mongod.conf
+  template:
+    src: mongod.conf.j2
+    dest: /etc/mongod.conf
+  notify: restart mongod
+
+- name: start mongod
+  service:
+    name: mongod
+    state: started
+
+- name: wait for mongod port
+  wait_for:
+    port: "{{ port }}"
+    delay: 5

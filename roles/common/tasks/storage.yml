@@ -1,0 +1,30 @@
+---
+
+- block:
+
+  - name: install xfs
+    yum:
+      name: xfsprogs
+      state: installed
+
+  - name: make xfs filesystem
+    filesystem:
+      fstype: xfs
+      dev: "/dev/{{ data_device_name }}"
+      opts: "-s size=4096"
+
+  - name: make mount dir
+    file:
+      path: "{{ item }}"
+      state: directory
+    with_items:
+      - "{{ mongo_root_dir }}"
+
+  - name: mount volume
+    mount:
+      name: "{{ mongo_root_dir }}"
+      src: "/dev/{{ data_device_name }}"
+      state: mounted
+      fstype: xfs
+      opts: noatime
+  when: not( data_device_name | trim == '' )

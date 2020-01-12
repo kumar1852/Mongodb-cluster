@@ -1,0 +1,11 @@
+[all:vars]
+mongo_root_dir=/var/lib/mongo
+data_device_name=xvdc
+replica_set_name=rs0
+cluster_mode=replica
+port=27017
+
+[replicas]
+10.2.3.6 dns=test-mongo-node0.us-west-2a.dev-charter.net
+10.2.3.160 dns=test-mongodb-node1.us-west-2b.dev-charter.net
+10.2.4.55 dns=test-mongodb-node2.us-west-2c.dev-charter.net

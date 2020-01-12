@@ -1,0 +1,45 @@
+---
+
+- name: set hostname
+  hostname:
+    name: "{{ dns }}"
+
+- name: setup Charter Repo
+  template:
+    src: charter.repo.j2
+    dest: /etc/yum.repos.d/charter.repo
+
+- name: add sysctl.conf
+  copy:
+    src: sysctl.conf
+    dest: /etc/sysctl.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: set ulimits
+  copy:
+    src: 90-nproc.conf
+    dest: /etc/security/limits.d/90-nproc.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: add init file disable Transparent Huge Pages
+  copy:
+    src: disable-thp
+    dest: /etc/init.d/disable-thp
+    owner: root
+    group: root
+    mode: 0755
+
+- name: execute disable THP
+  command: /etc/init.d/disable-thp start
+
+- name: on boot disable THP
+  service:
+    name: disable-thp
+    enabled: yes
+
+- name: disable zone reclaim
+  shell: echo 0 > /proc/sys/vm/zone_reclaim_mode

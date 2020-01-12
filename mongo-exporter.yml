@@ -1,0 +1,7 @@
+---
+
+- name: MongoDB Exporter
+  hosts: "{{ hosts | default('all') }}"
+  become: true
+  roles:
+    - mongo_exporter

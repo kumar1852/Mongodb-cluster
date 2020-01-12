@@ -1,0 +1,8 @@
+rs.initiate({
+  _id: "{{ replica_set_name }}",
+  members: [
+{% for h in groups['replicas'] %}
+{ _id : {{ loop.index0 }}, host: "{{ h }}:{{ port }}" },
+{% endfor %}
+  ]
+})

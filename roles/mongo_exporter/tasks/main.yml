@@ -1,0 +1,54 @@
+---
+
+- name: create Prometheus group
+  group: name={{ prometheus_group }}  state=present
+
+- name: create Prometheus user
+  user:
+    name: "{{ prometheus_user }}"
+    group: "{{ prometheus_group }}"
+    createhome: no
+    shell: /sbin/nologin
+    comment: "Prometheus User"
+    state: present
+
+- name: mkdirs
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_group }}"
+    mode: "u=rwx,g=rx,o="
+  with_items:
+    - "{{ mongodb_exporter_install_path }}"
+
+- name: copy mongodb_exporter binaries
+  unarchive:
+    src: "{{ item }}"
+    dest: "{{ mongodb_exporter_install_path }}"
+    mode: "a+x"
+  with_items:
+    - mongodb_exporter.tgz
+  notify:
+    - restart mongodb_exporter
+
+- name: set permissions, owner and group
+  file:
+    path: "{{ mongodb_exporter_install_path }}"
+    state: directory
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_group }}"
+    mode: "go-w"
+    recurse: yes
+
+- name: set mongodb_exporter variables
+  copy: src="etc-default-mongodb_exporter"  dest="/etc/default/mongodb_exporter"
+
+- name: copy INIT script to server
+  template: src="mongodb_exporter.init.sh.j2"  dest="/etc/init.d/mongodb_exporter"  mode="a+x"
+
+- name: set INIT status
+  service:
+    name: mongodb_exporter
+    state: started
+    enabled: yes

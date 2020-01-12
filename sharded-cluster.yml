@@ -1,0 +1,25 @@
+---
+
+- name: Common
+  hosts: all
+  become: true
+  roles:
+    - common
+
+- name: Config replicas
+  hosts: config
+  become: true
+  roles:
+    - mongoc
+
+- name: Shard replicas
+  hosts: replicas
+  become: true
+  roles:
+    - mongo
+
+- name: Routers
+  hosts: routers
+  become: true
+  roles:
+    - mongos

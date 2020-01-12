@@ -1,0 +1,8 @@
+---
+
+security_authorization: "disabled"
+replica_set_name: "rs0"
+cluster_mode: "replica"
+mongo_root_dir: "/var/lib/mongo"
+data_device_name: "xvdb"
+port: "27017"

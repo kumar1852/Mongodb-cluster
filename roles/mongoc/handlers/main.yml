@@ -1,0 +1,6 @@
+---
+
+- name: restart mongoc
+  service:
+    name: mongoc
+    state: restarted
